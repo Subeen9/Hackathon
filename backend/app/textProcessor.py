@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Dict, List
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,8 @@ class TextProcessor:
 
     def get_supported_languages(self) -> Dict[str, str]:
         return self.supported_languages
-
+    
+    
 
 # Singleton
 _text_processor: TextProcessor | None = None
@@ -95,3 +97,21 @@ def get_text_processor():
     if _text_processor is None:
         _text_processor = TextProcessor()
     return _text_processor
+
+def clean_text(text: str) -> str:
+        """
+    Clean OCR text for frontend display:
+    - Remove strange symbols or artifacts
+    - Collapse multiple spaces
+    - Normalize line breaks
+        """
+    # Remove non-printable characters (keep basic punctuation)
+        text = re.sub(r"[^\w\s.,;:!?()'-]", " ", text)
+    
+    # Collapse multiple spaces
+        text = re.sub(r"\s+", " ", text)
+    
+    # Optional: split into sentences/lines for readability
+        text = re.sub(r"\s*([.;!?])\s*", r"\1\n", text)
+    
+        return text.strip()

@@ -13,7 +13,8 @@ import Grid from "@mui/material/Grid";
 import dynamic from "next/dynamic";
 import TranslateIcon from "@mui/icons-material/Translate";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import UndoIcon from "@mui/icons-material/Undo"; // Import the new icon
+import UndoIcon from "@mui/icons-material/Undo";
+
 
 // Import PdfViewer dynamically to disable SSR
 const PdfViewer = dynamic(() => import("../components/PdfViewer"), {
@@ -69,6 +70,8 @@ export default function ViewerPage() {
       setIsSpeaking(false);
     }, 3000);
   };
+
+
 
   return (
     <Grid container spacing={2} sx={{ height: "calc(100vh - 64px)", p: 2 }}>

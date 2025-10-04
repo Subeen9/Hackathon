@@ -61,9 +61,10 @@ export default function HomePage() {
     console.log("Upload response:", data); // Debug log
     
 
-    localStorage.setItem("uploadedFileUrl", data.file_url);  // Changed from data.url
+    localStorage.setItem("uploadedFileUrl", data.file_url);  
     localStorage.setItem("processedText", data.accurate_text);
     localStorage.setItem("rawText", data.raw_ocr_text);
+    localStorage.setItem("LemmaText",JSON.stringify(data.text_analysis))
     
     setTimeout(() => (window.location.href = "/viewer"), 1000);
   } catch (err) {

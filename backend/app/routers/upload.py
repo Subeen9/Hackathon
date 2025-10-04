@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.preprocess import preprocess_image
 from app.ocr_ai_processor import extract_text_with_vision
 from app.textProcessor import get_text_processor
+from app.textProcessor import clean_text
 
 router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
 
@@ -55,6 +56,9 @@ async def upload_and_preprocess(
         
         # Extract text using Google Vision
         raw_text = extract_text_with_vision(preprocessed_path)
+
+        # Clean text
+        accurate_text = clean_text(raw_text)
         
         # Analyze text
         processor = get_text_processor()
@@ -63,10 +67,12 @@ async def upload_and_preprocess(
         
         text_analysis = processor.analyze_text(raw_text, language)
         
+        
         return JSONResponse(content={
             "success": True,
             "original_filename": file.filename,
             "file_url": f"/api/files/{file.filename}",
+            "accurate_text":accurate_text,
             "raw_ocr_text": raw_text,
             "text_analysis": text_analysis,
             "detected_language": language,
