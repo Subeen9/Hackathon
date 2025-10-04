@@ -4,6 +4,4 @@ __pycache__/
 credentials.jsonbackend/credentials.json
 credentials.json
 *.json
-venv
-
-venv
+uploads
