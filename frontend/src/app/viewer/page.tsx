@@ -1,8 +1,29 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Typography, Paper, Box } from "@mui/material";
-import Grid from "@mui/material/Grid"; // ✅ Correct import
+import Grid from "@mui/material/Grid";
+import dynamic from "next/dynamic";
+
+// Import PdfViewer dynamically to disable SSR
+const PdfViewer = dynamic(() => import("../components/PdfViewer"), {
+  ssr: false,
+});
 
 export default function ViewerPage() {
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<string>("");
+
+  useEffect(() => {
+    const url = localStorage.getItem("uploadedFileUrl");
+    console.log("Retrieved fileUrl:", url); // Debug log
+    if (url) {
+      setFileUrl(url);
+      setTranslation(
+        "Mock translation: This is where the AI-generated translation will appear."
+      );
+    }
+  }, []);
+
   return (
     <Grid container spacing={2} sx={{ height: "calc(100vh - 64px)", p: 2 }}>
       {/* Original Document */}
@@ -24,12 +45,36 @@ export default function ViewerPage() {
               overflow: "auto",
             }}
           >
-            <Typography color="text.secondary">[Preview will show here]</Typography>
+            {!fileUrl ? (
+              <Typography color="text.secondary">No document uploaded</Typography>
+            ) : fileUrl.endsWith(".pdf") ? (
+              <PdfViewer fileUrl={fileUrl} />
+            ) : (
+              <Box
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  overflow: "auto",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <img
+                  src={fileUrl}
+                  alt="Uploaded file"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "8px",
+                  }}
+                />
+              </Box>
+            )}
           </Box>
         </Paper>
       </Grid>
 
-      {/* Translated Document */}
+      {/* Translated Text */}
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper sx={{ height: "100%", p: 2, backgroundColor: "background.paper" }}>
           <Typography
@@ -40,9 +85,15 @@ export default function ViewerPage() {
             Translated Text
           </Typography>
           <Box sx={{ height: "90%", overflowY: "auto", p: 2 }}>
-            <Typography variant="body1">
-              [Translated text will appear here]
-            </Typography>
+            {translation ? (
+              <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
+                {translation}
+              </Typography>
+            ) : (
+              <Typography color="text.secondary">
+                Translation will appear here
+              </Typography>
+            )}
           </Box>
         </Paper>
       </Grid>

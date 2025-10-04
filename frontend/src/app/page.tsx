@@ -1,11 +1,19 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Container, Typography, Button, Paper } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Button,
+  Paper,
+  Box,
+  LinearProgress,
+} from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -28,13 +36,28 @@ export default function HomePage() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("http://localhost:8000/upload/", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      setUploading(true);
 
-    const data = await res.json();
-    alert("Uploaded: " + data.filename);
+      const res = await fetch("http://localhost:8000/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+
+      // Save the uploaded file URL for viewer
+      localStorage.setItem("uploadedFileUrl", data.url);
+
+      // Simulate delay so progress bar is visible
+      setTimeout(() => {
+        window.location.href = "/viewer";
+      }, 1000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setUploading(false);
+    }
   };
 
   return (
@@ -47,48 +70,57 @@ export default function HomePage() {
       </Typography>
 
       <Paper
-  {...getRootProps()}
-  sx={{
-    border: "2px dashed",
-    borderColor: isDragActive ? "primary.main" : "grey.700",
-    backgroundColor: "background.paper",   // Dark background
-    color: "text.secondary",               // Makes placeholder visible
-    borderRadius: "12px",
-    p: 6,
-    mb: 3,
-    cursor: "pointer",
-    textAlign: "center",
-    "&:hover": {
-      borderColor: "primary.main",
-      backgroundColor: "grey.900",
-    },
-  }}
-  elevation={3}
->
-  <input {...getInputProps()} />
-  <CloudUploadIcon sx={{ fontSize: 50, color: "primary.main", mb: 2 }} />
-  {file ? (
-    <Typography variant="subtitle1">{file.name}</Typography>
-  ) : isDragActive ? (
-    <Typography variant="subtitle1" color="primary">
-      Drop the file here…
-    </Typography>
-  ) : (
-    <Typography variant="subtitle1">
-      Drag & drop a file here, or click to select
-    </Typography>
-  )}
-</Paper>
-
-      <Button
-        variant="contained"
-        color="primary"
-        size="large"
-        onClick={handleUpload}
-        disabled={!file}
+        {...getRootProps()}
+        sx={{
+          border: "2px dashed",
+          borderColor: isDragActive ? "primary.main" : "grey.700",
+          backgroundColor: "background.paper",
+          color: "text.secondary",
+          borderRadius: "12px",
+          p: 6,
+          mb: 3,
+          cursor: "pointer",
+          textAlign: "center",
+          "&:hover": {
+            borderColor: "primary.main",
+            backgroundColor: "grey.900",
+          },
+        }}
+        elevation={3}
       >
-        Upload & Process
-      </Button>
+        <input {...getInputProps()} />
+        <CloudUploadIcon sx={{ fontSize: 50, color: "primary.main", mb: 2 }} />
+        {file ? (
+          <Typography variant="subtitle1">{file.name}</Typography>
+        ) : isDragActive ? (
+          <Typography variant="subtitle1" color="primary">
+            Drop the file here…
+          </Typography>
+        ) : (
+          <Typography variant="subtitle1">
+            Drag & drop a file here, or click to select
+          </Typography>
+        )}
+      </Paper>
+
+      {uploading ? (
+        <Box display="flex" flexDirection="column" alignItems="center" mt={2}>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Uploading your manuscript...
+          </Typography>
+          <LinearProgress sx={{ width: "100%" }} />
+        </Box>
+      ) : (
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={handleUpload}
+          disabled={!file}
+        >
+          Upload & Process
+        </Button>
+      )}
     </Container>
   );
 }
