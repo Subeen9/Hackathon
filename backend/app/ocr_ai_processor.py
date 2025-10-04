@@ -37,7 +37,7 @@ def accuracy_improvement_with_gemini(raw_text: str) -> str:
     """
     Using Gemini to correct and improve Latin text
     """
-    prompt=fYou are a Latin paleography expert. The text below is OCR output from a medieval Latin manuscript with many errors.
+    prompt=f"""You are a Latin paleography expert. The text below is OCR output from a medieval Latin manuscript with many errors.
 
 Your task:
 
@@ -54,7 +54,7 @@ Keep everything in Latin (no translation)
 Preserve line breaks
 
 RAW OCR TEXT:
-{raw_text}""""""
+{raw_text}"""
 
     try:
         print("=" * 60)
