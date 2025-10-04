@@ -90,6 +90,33 @@ Return ONLY corrected Old English text:"""
         print(f"Gemini error: {e}")
         return raw_text
 
+def correct_sanskrit_with_gemini(raw_text: str) -> str:
+    prompt = f"""You are an expert in Sanskrit paleography and manuscript transcription, specializing in Devanagari script.
+
+I have OCR output from a Sanskrit manuscript with errors. Correct it:
+
+1. Fix OCR mistakes (wrong letters, merged words, misread characters)
+2. Add proper word boundaries (respect Sanskrit sandhi rules)
+3. Preserve Devanagari characters correctly: क ख ग घ ङ च छ ज झ ञ ट ठ ड ढ ण त थ द ध न प फ ब भ म य र ल व श ष स ह
+4. Preserve vowel marks (diacritics): ा ि ी ु ू ृ ॄ ॢ े ै ो ौ ं ः ँ
+5. Expand common Sanskrit abbreviations if present
+6. Keep in Sanskrit Devanagari script - DO NOT transliterate or translate
+7. Remove symbols/asterisks/gibberish that are clearly OCR errors
+8. Format with proper line breaks
+9. Maintain authentic Sanskrit orthography
+
+RAW OCR:
+{raw_text}
+
+Return ONLY corrected Sanskrit text in Devanagari script:"""
+
+    try:
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini error: {e}")
+        return raw_text
+
 def correct_text_with_gemini(raw_text: str, language: str) -> str:
     """
     Router function that picks the right correction function based on language
@@ -98,6 +125,8 @@ def correct_text_with_gemini(raw_text: str, language: str) -> str:
         return correct_latin_with_gemini(raw_text)
     elif language == "old_english":
         return correct_old_english_with_gemini(raw_text)
+    elif language == "sanskrit":
+        return correct_sanskrit_with_gemini(raw_text)
     else:
         # Fallback to raw text if language not supported yet
         return raw_text
