@@ -5,16 +5,16 @@ import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 
 const theme = createTheme({
   palette: {
-    mode: "dark",
-    primary: { main: "#367583" },   // Navbar & Footer color
-    secondary: { main: "#2b5c66" }, // slightly darker shade for accents
+    mode: "light",
+    primary: { main: "#c9b2a0" },   // light brown (Navbar/Footer)
+    secondary: { main: "#8b5e3c" }, // darker accent brown
     background: {
-      default: "#0d1117", // dark page background
-      paper: "#161b22",   // cards / panels
+      default: "#faecd8", // parchment base
+      paper: "#fffef8",   // cards/panels
     },
     text: {
-      primary: "#e0f2f1",   // light text
-      secondary: "#b2dfdb", // muted teal text
+      primary: "#3e2f1c",
+      secondary: "#5a4630",
     },
   },
   typography: {

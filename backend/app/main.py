@@ -1,14 +1,12 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.routers import upload
-from app.preprocess import preprocess_image
 
-from fastapi import UploadFile, File
-from fastapi.responses import FileResponse, JSONResponse
-import os
+app = FastAPI(title="Hackathon API 🚀")
 
-app = FastAPI(title="Hackathon")
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,12 +15,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Ensure upload directory exists
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Serve uploaded files
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/")
 async def root():
     return {"message": "Hackathon API is running 🚀"}
 
+# Include the upload router
 app.include_router(upload.router)
-
