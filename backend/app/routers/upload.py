@@ -5,6 +5,9 @@ import shutil
 import os
 from app.preprocess import preprocess_image
 from app.ocr_ai_processor import extract_text_with_vision, correct_text_with_gemini
+from deep_translator import GoogleTranslator
+from fastapi import Body
+
 
 
 router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
@@ -18,6 +21,29 @@ async def get_file(filename: str):
     if not file_path.exists():
         return JSONResponse({"error": "File not found"}, status_code=404)
     return FileResponse(file_path)
+
+@router.post("/files/translation")
+async def translate_text(
+    text: str = Body(..., embed=True),
+    source_lang: str = Body("auto"),
+    target_lang: str = Body("en")
+):
+    if not text.strip():
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Text cannot be empty"}
+        )
+    translator = GoogleTranslator(source=source_lang, target=target_lang)
+    translated_text = translator.translate(text)
+    return JSONResponse(content={
+        "success": True,
+        "message": f"Translated from {source_lang} to {target_lang}",
+        "original_text": text,
+        "translated_text": translated_text,
+        "source_lang": source_lang,
+        "target_lang": target_lang
+})
+
 
 @router.post("/upload")
 async def upload_and_preprocess(

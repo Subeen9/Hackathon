@@ -33,7 +33,6 @@ export default function ViewerPage() {
     const text = localStorage.getItem("processedText");
     const raw = localStorage.getItem("rawText");
     
-    console.log("Retrieved from localStorage:", { url, text, raw }); 
     
     if (url) {
       setFileUrl(url);
@@ -44,15 +43,42 @@ export default function ViewerPage() {
   }, []);
   
 
-  const handleTranslate = () => {
+  const handleTranslate = async () => {
+  if (!processedText) {
+    alert("No text available to translate!");
+    return;
+  }
+
+  try {
     setIsTranslating(true);
-    setTimeout(() => {
-      setEnglishTranslation(
-        "This is the mock English translation of the text. It has now replaced the original digitalized text."
-      );
-      setIsTranslating(false);
-    }, 1500);
-  };
+
+    const response = await fetch("http://127.0.0.1:8000/api/files/translation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: processedText,
+        source_lang: "auto",
+        target_lang: "en",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Translation failed");
+    }
+
+    const data = await response.json();
+    setEnglishTranslation(data.translated_text || "No translation found.");
+  } catch (error) {
+    console.error("Error during translation:", error);
+    setEnglishTranslation("Error: Could not translate the text.");
+  } finally {
+    setIsTranslating(false);
+  }
+};
+
+
 
   // New function to revert to the original text
   const handleRevert = () => {
