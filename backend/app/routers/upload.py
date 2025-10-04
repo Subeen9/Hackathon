@@ -30,7 +30,7 @@ async def upload_and_preprocess(
     """
     try:
         # Validate language
-        valid_languages = ["latin", "old_english", "sanskrit"]
+        valid_languages = ["latin", "old_english", "sanskrit", "greek"]
         if language not in valid_languages:
             return JSONResponse(
                 status_code=400, 

@@ -159,6 +159,7 @@ export default function HomePage() {
             <MenuItem value="latin">Latin</MenuItem>
             <MenuItem value="old_english">Old English</MenuItem>
             <MenuItem value="sanskrit">Sanskrit </MenuItem>
+             <MenuItem value="greek">Greek</MenuItem>
           </Select>
         </FormControl>
         <Paper
