@@ -12,7 +12,7 @@ vision_client = vision.ImageAnnotatorClient()
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 genai.configure(api_key=GEMINI_API_KEY)
-gemini_model = genai.GenerativeModel('gemini-pro')
+gemini_model = genai.GenerativeModel('gemini-2.5-pro')
 
 def extract_text_with_vision(image_path: str) -> str:
 
@@ -34,13 +34,44 @@ def extract_text_with_vision(image_path: str) -> str:
         return "No text found"
     
 def accuracy_improvement_with_gemini(raw_text: str) -> str:
-    prompt = f"Improve the accuracy of the following OCR text:\n\n{raw_text}\n\nCorrected Text:"
-   
+    """
+    Using Gemini to correct and improve Latin text
+    """
+    prompt=fYou are a Latin paleography expert. The text below is OCR output from a medieval Latin manuscript with many errors.
+
+Your task:
+
+Correct OCR mistakes (e.g. wrong/missing letters, merged words)
+
+Add proper spaces between words
+
+Remove strange symbols (e.g. ɲ, Č, ő, *, etc.)
+
+Expand obvious abbreviations
+
+Keep everything in Latin (no translation)
+
+Preserve line breaks
+
+RAW OCR TEXT:
+{raw_text}""""""
 
     try:
+        print("=" * 60)
+        print("CALLING GEMINI API")
+        print("=" * 60)
+        
         response = gemini_model.generate_content(prompt)
+        
+        print("GEMINI RESPONSE:")
+        print(response.text)
+        print("=" * 60)
+        
         return response.text.strip()
+        
     except Exception as e:
-        print(f"Gemini error: {e}")
+        print("=" * 60)
+        print(f"GEMINI ERROR: {type(e).__name__}")
+        print(f"ERROR MESSAGE: {str(e)}")
+        print("=" * 60)
         return raw_text
-    return response.text
