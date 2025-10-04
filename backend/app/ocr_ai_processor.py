@@ -1,11 +1,18 @@
 import os
 import io
 from google.cloud import vision
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # setting up Google Vision
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'credentials.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 vision_client = vision.ImageAnnotatorClient()
 
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel('gemini-pro')
 
 def extract_text_with_vision(image_path: str) -> str:
 
