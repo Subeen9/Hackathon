@@ -1,10 +1,10 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Form
 from fastapi.responses import JSONResponse, FileResponse 
 from pathlib import Path
 import shutil
 import os
 from app.preprocess import preprocess_image
-from app.ocr_ai_processor import extract_text_with_vision, correct_latin_with_gemini
+from app.ocr_ai_processor import extract_text_with_vision, correct_text_with_gemini
 
 
 router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
@@ -20,14 +20,23 @@ async def get_file(filename: str):
     return FileResponse(file_path)
 
 @router.post("/upload")
-async def upload_and_preprocess(file: UploadFile = File(...),language: str = Form("latin")):
-    
-
+async def upload_and_preprocess(
+    file: UploadFile = File(...),
+    language: str = Form("latin")
+):
     """
     Upload an image or PDF, preprocess if image, extract text.
+    Languages: latin, old_english, sanskrit
     """
-    
     try:
+        # Validate language
+        valid_languages = ["latin", "old_english", "sanskrit"]
+        if language not in valid_languages:
+            return JSONResponse(
+                status_code=400, 
+                content={"error": f"Invalid language. Choose from: {valid_languages}"}
+            )
+        
         # Save original file
         file_path = UPLOAD_DIR / file.filename
         with open(file_path, "wb") as buffer:
@@ -42,16 +51,18 @@ async def upload_and_preprocess(file: UploadFile = File(...),language: str = For
         # Extract text using Google Vision
         raw_text = extract_text_with_vision(preprocessed_path)
         
-        corrected_text = correct_latin_with_gemini(raw_text)
+        # Correct text based on language
+        corrected_text = correct_text_with_gemini(raw_text, language)
         
         return JSONResponse(content={
             "success": True,
+            "language": language,
             "original_filename": file.filename,
             "file_url": f"/api/files/{file.filename}",
-            "preprocessed_file": f"/api/files/preprocessed_{file.filename}" if ext in [".jpg", ".jpeg", ".png"] else None, 
+            "preprocessed_file": f"/api/files/preprocessed_clean.png" if ext in [".jpg", ".jpeg", ".png"] else None, 
             "raw_ocr_text": raw_text,
             "accurate_text": corrected_text,  
-            "message": "Vision is working"
+            "message": f"{language.replace('_', ' ').title()} extraction complete"
         })
 
     except Exception as e:
