@@ -5,3 +5,4 @@ credentials.jsonbackend/credentials.json
 credentials.json
 *.json
 uploads
+venv
