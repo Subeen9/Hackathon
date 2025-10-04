@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from pathlib import Path
 import shutil
 import os
@@ -11,10 +11,18 @@ router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+@router.get("/files/{filename}")
+async def get_file(filename: str):
+    file_path = UPLOAD_DIR / filename
+    if not file_path.exists():
+        return {"error": "File not found"}
+    return FileResponse(file_path)
+
 @router.post("/upload")
 async def upload_and_preprocess(file: UploadFile = File(...)):
     """
-    Upload an image file, preprocess it, and use google vision to extract text.
+    Upload an image or PDF, preprocess if image, extract text, improve with Gemini.
+    Save both original and preprocessed, but show original to user.
     """
     try:
         
