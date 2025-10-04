@@ -20,10 +20,13 @@ async def get_file(filename: str):
     return FileResponse(file_path)
 
 @router.post("/upload")
-async def upload_and_preprocess(file: UploadFile = File(...)):
+async def upload_and_preprocess(file: UploadFile = File(...),language: str = Form("latin")):
+    
+
     """
     Upload an image or PDF, preprocess if image, extract text.
     """
+    
     try:
         # Save original file
         file_path = UPLOAD_DIR / file.filename
