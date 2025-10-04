@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.routers import upload
+from app.routers import tts
 
 app = FastAPI(title="Hackathon API 🚀")
 
@@ -28,3 +29,4 @@ async def root():
 
 # Include the upload router
 app.include_router(upload.router)
+app.include_router(tts.router, prefix="/api")
