@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import os
 from app.preprocess import preprocess_image
-from app.ocr_ai_processor import extract_text_with_vision, accuracy_improvement_with_gemini
+from app.ocr_ai_processor import extract_text_with_vision
 
 router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
 
@@ -26,17 +26,11 @@ async def upload_and_preprocess(file: UploadFile = File(...)):
         # Extracting text using Google Vision
         raw_text = extract_text_with_vision(preprocessed_path)
         
-        # Accuracy improvement with Gemini
-        accurate_text_gemini = accuracy_improvement_with_gemini(raw_text)
-        
-        
         return JSONResponse(content={
             "success": True,
             "original_filename": file.filename,
-            "preprocessed_image": "preprocessed_clean.png",
             "raw_ocr_text": raw_text,
-            "accurate_text": accurate_text_gemini,
-            "message": "vision and gemini working"
+            "message": "Visoin is working"
         })
 
     except Exception as e:
