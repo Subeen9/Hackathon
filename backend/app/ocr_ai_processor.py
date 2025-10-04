@@ -32,3 +32,8 @@ def extract_text_with_vision(image_path: str) -> str:
         return texts[0].description
     else:
         return "No text found"
+    
+def accuracy_improvement_with_gemini(raw_text: str) -> str:
+    prompt = f"Improve the accuracy of the following OCR text:\n\n{raw_text}\n\nCorrected Text:"
+    response = gemini_model.generate_text(prompt=prompt, max_output_tokens=1024)
+    return response.text
