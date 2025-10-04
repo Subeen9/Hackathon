@@ -34,7 +34,7 @@ App runs on localhost:3000
 
 ```bash
 py -3.12 -m venv .venv
-source .venv/bin/activate # Activate env
+source .venv/Scripts/activate # Activate env
 
 ```
 
