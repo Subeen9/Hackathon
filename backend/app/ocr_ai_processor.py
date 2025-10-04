@@ -54,7 +54,7 @@ Keep everything in Latin (no translation)
 Preserve line breaks
 
 RAW OCR TEXT:
-{raw_text}"""
+{raw_text}"""""
 
     try:
         print("=" * 60)

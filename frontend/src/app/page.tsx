@@ -46,24 +46,31 @@ export default function HomePage() {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      setUploading(true);
-      const res = await fetch("http://localhost:8000/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      localStorage.setItem("uploadedFileUrl", data.url);
-      setTimeout(() => (window.location.href = "/viewer"), 1000);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setUploading(false);
-    }
-  };
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    setUploading(true);
+    const res = await fetch("http://localhost:8000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
+    
+    console.log("Upload response:", data); // Debug log
+    
+
+    localStorage.setItem("uploadedFileUrl", data.file_url);  // Changed from data.url
+    localStorage.setItem("processedText", data.accurate_text);
+    localStorage.setItem("rawText", data.raw_ocr_text);
+    
+    setTimeout(() => (window.location.href = "/viewer"), 1000);
+  } catch (err) {
+    console.error("Upload error:", err);
+    setUploading(false);
+  }
+};
 
   return (
     <Box

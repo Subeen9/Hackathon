@@ -26,7 +26,22 @@ export default function ViewerPage() {
   const [englishTranslation, setEnglishTranslation] = useState<string>("");
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [rawText, setRawText] = useState<string>("");
 
+  useEffect(() => {
+    const url = localStorage.getItem("uploadedFileUrl");
+    const text = localStorage.getItem("processedText");
+    const raw = localStorage.getItem("rawText");
+    
+    console.log("Retrieved from localStorage:", { url, text, raw }); 
+    
+    if (url) {
+      setFileUrl(url);
+    }
+    if (text) {
+      setProcessedText(text);
+    }
+  }, []);
   useEffect(() => {
     const url = localStorage.getItem("uploadedFileUrl");
     if (url) {
