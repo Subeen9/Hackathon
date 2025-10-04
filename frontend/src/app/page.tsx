@@ -8,7 +8,11 @@ import {
   Paper,
   Box,
   LinearProgress,
+  FormControl,
+  InputLabel,
   Modal,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
@@ -19,6 +23,8 @@ export default function HomePage() {
   const [uploading, setUploading] = useState(false);
   const [openCamera, setOpenCamera] = useState(false);
   const webcamRef = useRef<Webcam>(null);
+  const [language, setLanguage] = useState("latin");
+
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) setFile(acceptedFiles[0]);
@@ -46,31 +52,33 @@ export default function HomePage() {
   };
 
   const handleUpload = async () => {
-  if (!file) return;
-  const formData = new FormData();
-  formData.append("file", file);
-  try {
-    setUploading(true);
-    const res = await fetch("http://localhost:8000/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-    if (!res.ok) throw new Error("Upload failed");
-    const data = await res.json();
-    
-    console.log("Upload response:", data); // Debug log
-    
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("language", language);
+    try {
+      setUploading(true);
+      const res = await fetch("http://localhost:8000/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
 
-    localStorage.setItem("uploadedFileUrl", data.file_url);  // Changed from data.url
-    localStorage.setItem("processedText", data.accurate_text);
-    localStorage.setItem("rawText", data.raw_ocr_text);
-    
-    setTimeout(() => (window.location.href = "/viewer"), 1000);
-  } catch (err) {
-    console.error("Upload error:", err);
-    setUploading(false);
-  }
-};
+      console.log("Upload response:", data); // Debug log
+
+
+      localStorage.setItem("uploadedFileUrl", data.file_url);  // Changed from data.url
+      localStorage.setItem("processedText", data.accurate_text);
+      localStorage.setItem("rawText", data.raw_ocr_text);
+      localStorage.setItem("language", data.language);
+
+      setTimeout(() => (window.location.href = "/viewer"), 1000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setUploading(false);
+    }
+  };
 
   return (
     <Box
@@ -118,6 +126,41 @@ export default function HomePage() {
           directly using your camera.
         </Typography>
 
+        <FormControl
+          fullWidth
+          sx={{
+            mb: 3,
+            maxWidth: "400px",
+            mx: "auto",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "#c49a6c",
+              },
+              "&:hover fieldset": {
+                borderColor: "#8b5e3c",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#8b5e3c",
+              },
+            },
+          }}
+        >
+          <InputLabel sx={{ color: "#5a4630" }}>Manuscript Language</InputLabel>
+          <Select
+            value={language}
+            label="Manuscript Language"
+            onChange={(e) => setLanguage(e.target.value)}
+            sx={{
+              bgcolor: "#fffef8",
+              color: "#3e2f1c",
+              borderRadius: "8px",
+            }}
+          >
+            <MenuItem value="latin">Latin</MenuItem>
+            <MenuItem value="old_english">Old English</MenuItem>
+            <MenuItem value="sanskrit">Sanskrit (Coming Soon)</MenuItem>
+          </Select>
+        </FormControl>
         <Paper
           {...getRootProps()}
           elevation={3}
