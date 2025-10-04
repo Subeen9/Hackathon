@@ -9,7 +9,6 @@ import os
 
 app = FastAPI(title="Hackathon")
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,23 +24,21 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def root():
     return {"message": "Hackathon API is running 🚀"}
 
-# ✅ upload route
 app.include_router(upload.router)
 
 
-# ✅ Add preprocess endpoint here directly
+
 @app.post("/preprocess")
 async def preprocess_file(file: UploadFile = File(...)):
     try:
-        # Save uploaded file
+     
         input_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(input_path, "wb") as f:
             f.write(await file.read())
 
-        # Run preprocessing
+   
         output_path = preprocess_image(input_path)
 
-        # Return processed image file
         return FileResponse(
             output_path,
             media_type="image/png",
