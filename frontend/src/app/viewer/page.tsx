@@ -63,20 +63,32 @@ export default function ViewerPage() {
     setEnglishTranslation("");
   };
 
-  const handleSpeak = () => {
-    const textToSpeak = englishTranslation || processedText;
-    if (!textToSpeak || isSpeaking) return;
+const handleSpeak = async () => {
+  const textToSpeak = englishTranslation;
+  if (!textToSpeak || isSpeaking) return;
 
-    setIsSpeaking(true);
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
+  setIsSpeaking(true);
+  try {
+    const res = await fetch("http://localhost:8000/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: textToSpeak }),
+    });
+
+    const data = await res.json();
+    if (data.audio) {
+      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+      audio.play();
+      audio.onended = () => setIsSpeaking(false);
     } else {
-      console.log("Mocking speech for:", textToSpeak);
-      setTimeout(() => setIsSpeaking(false), 3000);
+      throw new Error("No audio data returned");
     }
-  };
+  } catch (err) {
+    console.error("TTS Error:", err);
+    setIsSpeaking(false);
+  }
+};
+
 
   const renderLemmaText = () => {
     if (!lemmaData?.length) return processedText;
