@@ -26,24 +26,3 @@ async def root():
 
 app.include_router(upload.router)
 
-
-
-@app.post("/preprocess")
-async def preprocess_file(file: UploadFile = File(...)):
-    try:
-     
-        input_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(input_path, "wb") as f:
-            f.write(await file.read())
-
-   
-        output_path = preprocess_image(input_path)
-
-        return FileResponse(
-            output_path,
-            media_type="image/png",
-            filename="preprocessed_clean.png"
-        )
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
