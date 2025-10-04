@@ -10,11 +10,11 @@ load_dotenv()
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 vision_client = vision.ImageAnnotatorClient()
 
-# Gemini setup - match Colab approach
+# Gemini setup
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Find available models like in Colab
+# Find available models
 available_models = []
 for m in genai.list_models():
     if 'generateContent' in m.supported_generation_methods:
@@ -62,4 +62,42 @@ Return ONLY corrected Latin text:"""
         return response.text.strip()
     except Exception as e:
         print(f"Gemini error: {e}")
+        return raw_text
+
+def correct_old_english_with_gemini(raw_text: str) -> str:
+    prompt = f"""You are an expert in Old English (Anglo-Saxon) paleography and manuscript transcription.
+
+I have OCR output from an Old English manuscript with errors. Correct it:
+
+1. Fix OCR mistakes (wrong letters, merged words, gibberish)
+2. Add proper word boundaries
+3. Preserve Old English special characters: þ (thorn), ð (eth), æ (ash), ƿ (wynn)
+4. Expand common Old English abbreviations (þ̄→þæt, ⁊→and, 7→and)
+5. Keep in Old English - DO NOT translate to Modern English
+6. Remove symbols/asterisks/gibberish that are clearly OCR errors
+7. Format with line breaks
+8. Maintain authentic Anglo-Saxon spelling
+
+RAW OCR:
+{raw_text}
+
+Return ONLY corrected Old English text:"""
+
+    try:
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini error: {e}")
+        return raw_text
+
+def correct_text_with_gemini(raw_text: str, language: str) -> str:
+    """
+    Router function that picks the right correction function based on language
+    """
+    if language == "latin":
+        return correct_latin_with_gemini(raw_text)
+    elif language == "old_english":
+        return correct_old_english_with_gemini(raw_text)
+    else:
+        # Fallback to raw text if language not supported yet
         return raw_text
