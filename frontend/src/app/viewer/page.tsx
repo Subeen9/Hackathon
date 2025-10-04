@@ -42,15 +42,7 @@ export default function ViewerPage() {
       setProcessedText(text);
     }
   }, []);
-  useEffect(() => {
-    const url = localStorage.getItem("uploadedFileUrl");
-    if (url) {
-      setFileUrl(url);
-      setProcessedText(
-        "This is the initial digitalized text from the document. It appears here first, ready to be translated or read aloud."
-      );
-    }
-  }, []);
+  
 
   const handleTranslate = () => {
     setIsTranslating(true);
