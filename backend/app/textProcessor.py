@@ -36,7 +36,7 @@ class TextProcessor:
         return self.processors[language_code]
 
     def analyze_text(self, text: str, language: str = "lat") -> List[Dict]:
-        """Analyze text and return word, lemma, and POS only."""
+        """Analyze text and return only word and lemma."""
         if language not in self.supported_languages:
             return [{"error": f"Language '{language}' not supported"}]
 
@@ -48,30 +48,17 @@ class TextProcessor:
             doc = nlp.analyze(text)
             results = []
             for word in getattr(doc, "words", []):
-                if not getattr(word, "lemma", None):
-                    continue
-                pos = getattr(word, "pos", "UNKNOWN")
-                if pos in {"PUNCT", "X"}:
+                lemma = getattr(word, "lemma", None)
+                if not lemma:
                     continue
                 results.append({
                     "word": word.string,
-                    "lemma": word.lemma,
-                    "pos": self._get_pos_description(pos)
+                    "lemma": lemma,
                 })
             return results
         except Exception as e:
             logger.exception(f"Error analyzing text for {language}: {e}")
             return [{"error": str(e)}]
-
-    def _get_pos_description(self, pos: str) -> str:
-        """Readable POS mapping."""
-        pos_map = {
-            "NOUN": "noun", "VERB": "verb", "ADJ": "adjective", "ADV": "adverb",
-            "PRON": "pronoun", "ADP": "preposition", "CONJ": "conjunction",
-            "CCONJ": "conjunction", "DET": "determiner", "NUM": "numeral",
-            "PART": "particle", "PROPN": "proper_noun",
-        }
-        return pos_map.get(pos, pos.lower())
 
     def detect_language(self, text: str) -> str:
         """Simple heuristic language detector."""
@@ -87,7 +74,6 @@ class TextProcessor:
     def get_supported_languages(self) -> Dict[str, str]:
         return self.supported_languages
     
-    
 
 # Singleton
 _text_processor: TextProcessor | None = None
@@ -98,20 +84,21 @@ def get_text_processor():
         _text_processor = TextProcessor()
     return _text_processor
 
+
 def clean_text(text: str) -> str:
-        """
+    """
     Clean OCR text for frontend display:
     - Remove strange symbols or artifacts
     - Collapse multiple spaces
     - Normalize line breaks
-        """
+    """
     # Remove non-printable characters (keep basic punctuation)
-        text = re.sub(r"[^\w\s.,;:!?()'-]", " ", text)
+    text = re.sub(r"[^\w\s.,;:!?()'-]", " ", text)
     
     # Collapse multiple spaces
-        text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"\s+", " ", text)
     
     # Optional: split into sentences/lines for readability
-        text = re.sub(r"\s*([.;!?])\s*", r"\1\n", text)
+    text = re.sub(r"\s*([.;!?])\s*", r"\1\n", text)
     
-        return text.strip()
+    return text.strip()
