@@ -1,7 +1,7 @@
-# backend/api/tts.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from google.cloud import texttospeech
+from google.oauth2 import service_account
 import base64
 
 router = APIRouter()
@@ -12,7 +12,9 @@ class TTSRequest(BaseModel):
 @router.post("/tts")
 async def text_to_speech(request: TTSRequest):
     try:
-        client = texttospeech.TextToSpeechClient()
+        # Load credentials from another service account
+        credentials = service_account.Credentials.from_service_account_file("credentials2.json")
+        client = texttospeech.TextToSpeechClient(credentials=credentials)
 
         synthesis_input = texttospeech.SynthesisInput(text=request.text)
         voice = texttospeech.VoiceSelectionParams(
@@ -29,7 +31,6 @@ async def text_to_speech(request: TTSRequest):
             audio_config=audio_config
         )
 
-        # Return as base64 so frontend can play it directly
         audio_base64 = base64.b64encode(response.audio_content).decode("utf-8")
         return {"audio": audio_base64}
 

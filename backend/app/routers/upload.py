@@ -12,6 +12,18 @@ router = APIRouter(prefix="/api", tags=["Upload & Preprocess"])
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
+LANGUAGE_MAP = {
+    "latin": "lat",
+    "lat": "lat",
+    "ancient greek": "grc",
+    "greek": "grc",
+    "old english": "ang",
+    "english": "ang"
+}
+
+def normalize_language(lang: str) -> str:
+    lang = lang.strip().lower()
+    return LANGUAGE_MAP.get(lang, "lat")
 
 # Pydantic model for text analysis requests
 class TextAnalysisRequest(BaseModel):
@@ -83,7 +95,16 @@ async def upload_and_preprocess(
             language = processor.detect_language(corrected_text)
         
         # Get linguistic analysis (lemma + POS)
+        language = normalize_language(language)
         text_analysis = processor.analyze_text(corrected_text, language)
+        print("\n=== OCR Debug Info ===")
+        print("📄 File:", file.filename)
+        print("🌐 Language:", language)
+        print("🧾 Raw OCR Text:\n", raw_text[:500])  # limit to 500 chars
+        print("✅ Corrected Text:\n", corrected_text[:500])
+        print("📊 Text Analysis (first 5 items):", text_analysis[:5])
+        print("======================\n")
+
         
         return JSONResponse(content={
             "success": True,
