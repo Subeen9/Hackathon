@@ -66,19 +66,18 @@ export default function HomePage() {
       const data = await res.json();
 
       console.log("Upload response:", data); // Debug log
-
-
-      localStorage.setItem("uploadedFileUrl", data.file_url);  // Changed from data.url
-      localStorage.setItem("processedText", data.accurate_text);
-      localStorage.setItem("rawText", data.raw_ocr_text);
-      localStorage.setItem("language", data.language);
-
-      setTimeout(() => (window.location.href = "/viewer"), 1000);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setUploading(false);
-    }
-  };
+    localStorage.setItem("uploadedFileUrl", data.file_url);  
+    localStorage.setItem("processedText", data.accurate_text);
+    localStorage.setItem("rawText", data.raw_ocr_text);
+    localStorage.setItem("LemmaText",JSON.stringify(data.text_analysis))
+    localStorage.setItem("language", data.language);
+    
+    setTimeout(() => (window.location.href = "/viewer"), 1000);
+  } catch (err) {
+    console.error("Upload error:", err);
+    setUploading(false);
+  }
+};
 
   return (
     <Box

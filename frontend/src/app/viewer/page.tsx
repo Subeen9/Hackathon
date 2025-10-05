@@ -8,14 +8,14 @@ import {
   Stack,
   IconButton,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid"; // Updated import
 import dynamic from "next/dynamic";
 import TranslateIcon from "@mui/icons-material/Translate";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import UndoIcon from "@mui/icons-material/Undo"; // Import the new icon
+import UndoIcon from "@mui/icons-material/Undo";
 
-// Import PdfViewer dynamically to disable SSR
 const PdfViewer = dynamic(() => import("../components/PdfViewer"), {
   ssr: false,
 });
@@ -26,22 +26,28 @@ export default function ViewerPage() {
   const [englishTranslation, setEnglishTranslation] = useState<string>("");
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [rawText, setRawText] = useState<string>("");
+  const [lemmaData, setLemmaData] = useState<any[]>([]);
 
   useEffect(() => {
     const url = localStorage.getItem("uploadedFileUrl");
     const text = localStorage.getItem("processedText");
-    const raw = localStorage.getItem("rawText");
-    
-    
-    if (url) {
-      setFileUrl(url);
-    }
-    if (text) {
-      setProcessedText(text);
+    const lemma = localStorage.getItem("LemmaText");
+
+    console.log("Retrieved from localStorage:", { url, text, lemma });
+
+    if (url) setFileUrl(url);
+    if (text) setProcessedText(text);
+
+    if (lemma) {
+      try {
+        const parsed = JSON.parse(lemma);
+        setLemmaData(parsed);
+        console.log("Parsed Lemma:", parsed);
+      } catch (err) {
+        console.error("Invalid LemmaText JSON:", err);
+      }
     }
   }, []);
-  
 
   const handleTranslate = async () => {
   if (!processedText) {
@@ -80,29 +86,97 @@ export default function ViewerPage() {
 
 
 
-  // New function to revert to the original text
   const handleRevert = () => {
     setEnglishTranslation("");
   };
 
-  const handleSpeak = () => {
-    const textToSpeak = englishTranslation || processedText;
-    if (!textToSpeak || isSpeaking) return;
+const handleSpeak = async () => {
+  const textToSpeak = englishTranslation;
+  if (!textToSpeak || isSpeaking) return;
 
-    setIsSpeaking(true);
-    console.log("Mocking speech for:", textToSpeak);
-    setTimeout(() => {
-      setIsSpeaking(false);
-    }, 3000);
+  setIsSpeaking(true);
+  try {
+    const res = await fetch("http://localhost:8000/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: textToSpeak }),
+    });
+
+    const data = await res.json();
+    if (data.audio) {
+      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+      audio.play();
+      audio.onended = () => setIsSpeaking(false);
+    } else {
+      throw new Error("No audio data returned");
+    }
+  } catch (err) {
+    console.error("TTS Error:", err);
+    setIsSpeaking(false);
+  }
+};
+
+
+  const renderLemmaText = () => {
+    if (!lemmaData?.length) return processedText;
+
+    return lemmaData.map((item, idx) => (
+      <Tooltip
+        key={idx}
+        title={
+          <Box>
+            <Typography variant="caption" display="block">
+              <strong>Lemma:</strong> {item.lemma || "N/A"}
+            </Typography>
+            <Typography variant="caption" display="block">
+              <strong>POS:</strong> {item.pos_description || item.pos || "unknown"}
+            </Typography>
+          </Box>
+        }
+        arrow
+        placement="top"
+        slotProps={{
+          tooltip: {
+            sx: {
+              bgcolor: "#8b5e3c",
+              color: "#fffef8",
+              fontSize: "0.85rem",
+              borderRadius: "8px",
+              px: 1.5,
+              py: 1,
+              boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+            },
+          },
+        }}
+      >
+        <span
+          style={{
+            cursor: "help",
+            fontWeight: 600,
+            color: "#8b5e3c",
+            transition: "background-color 0.2s ease",
+            marginRight: "4px",
+            display: "inline-block",
+          }}
+        >
+          {item.word}
+        </span>
+      </Tooltip>
+    ));
   };
 
   return (
     <Grid container spacing={2} sx={{ height: "calc(100vh - 64px)", p: 2 }}>
-      {/* Original Document */}
+      {/* Original Document - LEFT SIDE */}
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper
           elevation={3}
-          sx={{ height: "100%", p: 2, display: "flex", flexDirection: "column" }}
+          sx={{
+            height: "100%",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
           <Typography
             variant="h6"
@@ -142,11 +216,16 @@ export default function ViewerPage() {
         </Paper>
       </Grid>
 
-      {/* Digitalized & Translated Text */}
+      {/* Digitalized & Translated Text - RIGHT SIDE */}
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper
           elevation={3}
-          sx={{ height: "100%", p: 2, display: "flex", flexDirection: "column" }}
+          sx={{
+            height: "100%",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
           <Box
             sx={{
@@ -163,7 +242,6 @@ export default function ViewerPage() {
               {englishTranslation ? "Translated Text" : "Digitalized Text"}
             </Typography>
             <Stack direction="row" spacing={1}>
-              {/*  This block now conditionally shows Translate or Revert */}
               {englishTranslation ? (
                 <Button
                   variant="outlined"
@@ -200,10 +278,24 @@ export default function ViewerPage() {
               </IconButton>
             </Stack>
           </Box>
+
+          {/* Text with lemma tooltips */}
           <Box sx={{ flexGrow: 1, overflowY: "auto", p: 1 }}>
-            {processedText || englishTranslation ? (
+            {englishTranslation ? (
               <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
-                {englishTranslation || processedText}
+                {englishTranslation}
+              </Typography>
+            ) : processedText ? (
+              <Typography 
+                component="div"
+                variant="body1" 
+                sx={{ 
+                  whiteSpace: "normal", 
+                  lineHeight: 1.8,
+                  wordWrap: "break-word"
+                }}
+              >
+                {renderLemmaText()}
               </Typography>
             ) : (
               <Typography color="text.secondary">
