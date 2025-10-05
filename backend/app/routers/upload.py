@@ -96,14 +96,12 @@ async def upload_and_preprocess(
         
         # Get linguistic analysis (lemma + POS)
         language = normalize_language(language)
-        text_analysis = processor.analyze_text(corrected_text, language)
-        print("\n=== OCR Debug Info ===")
-        print("📄 File:", file.filename)
-        print("🌐 Language:", language)
-        print("🧾 Raw OCR Text:\n", raw_text[:500])  # limit to 500 chars
-        print("✅ Corrected Text:\n", corrected_text[:500])
-        print("📊 Text Analysis (first 5 items):", text_analysis[:5])
-        print("======================\n")
+        try:
+           text_analysis = processor.analyze_text(corrected_text, language)
+        except Exception as e:
+            print(f" Text analysis failed for {language}: {e}")
+            text_analysis = None 
+        
 
         
         return JSONResponse(content={
