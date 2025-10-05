@@ -45,6 +45,7 @@ export default function ViewerPage() {
         console.log("Parsed Lemma:", parsed);
       } catch (err) {
         console.error("Invalid LemmaText JSON:", err);
+        setLemmaData([])
       }
     }
   }, []);
@@ -121,47 +122,32 @@ const handleSpeak = async () => {
     if (!lemmaData?.length) return processedText;
 
     return lemmaData.map((item, idx) => (
-      <Tooltip
-        key={idx}
-        title={
-          <Box>
-            <Typography variant="caption" display="block">
-              <strong>Lemma:</strong> {item.lemma || "N/A"}
-            </Typography>
-            <Typography variant="caption" display="block">
-              <strong>POS:</strong> {item.pos_description || item.pos || "unknown"}
-            </Typography>
-          </Box>
-        }
-        arrow
-        placement="top"
-        slotProps={{
-          tooltip: {
-            sx: {
-              bgcolor: "#8b5e3c",
-              color: "#fffef8",
-              fontSize: "0.85rem",
-              borderRadius: "8px",
-              px: 1.5,
-              py: 1,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
-            },
-          },
-        }}
-      >
-        <span
-          style={{
-            cursor: "help",
-            fontWeight: 600,
-            color: "#8b5e3c",
-            transition: "background-color 0.2s ease",
-            marginRight: "4px",
-            display: "inline-block",
-          }}
-        >
-          {item.word}
-        </span>
-      </Tooltip>
+     <Tooltip
+  key={idx}
+  title={
+    item.lemma ? (
+      <Typography variant="caption">
+        <strong>Lemma:</strong> {item.lemma}
+      </Typography>
+    ) : (
+      ""
+    )
+  }
+  arrow
+>
+  <span
+    style={{
+      cursor: item.lemma ? "help" : "default",
+      fontWeight: item.lemma ? 600 : "normal",
+      color: item.lemma ? "#8b5e3c" : "inherit",
+      marginRight: "4px",
+      display: "inline-block",
+    }}
+  >
+    {item.word}
+  </span>
+</Tooltip>
+
     ));
   };
 
