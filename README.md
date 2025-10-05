@@ -21,6 +21,10 @@ This project is divided into three main parts:
 
 
 ---
+### System Architecture
+[![Screenshot-2025-10-04-at-8-30-49-PM.png](https://i.postimg.cc/43y4bkLF/Screenshot-2025-10-04-at-8-30-49-PM.png)](https://postimg.cc/Mck8q48y)
+
+---
 
 ## Getting Started
 
@@ -61,7 +65,7 @@ API runs at http://127.0.0.1:8000/docs
 In python requirement.txt file is to list the packages/library installed
 It is similiar to package.json in node app.
 ```bash
-pip freeze # See the version of the installed package in terminal
+pip freeze # See the version of the installed package in the terminal
 pip freeze > requirement.txt # Creates a file called requirement.txt with installed packages
 ```
 
