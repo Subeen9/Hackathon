@@ -1,4 +1,12 @@
-# Hackathon - HackHarvard
+# HackHarvard - Textify
+
+**Textify** is a project dedicated to enhancing the understanding of human culture and history through digital humanities. Our goal is to rethink how ancient literature from centuries ago can be processed, analyzed, and read in the modern era. Currently, we support the digitalization of manuscripts in Old English, Latin, Greek, and Sanskrit.
+
+Using Google Cloud Vision, we perform OCR on these manuscripts, and with advanced computer vision techniques, we process and structure the documents. Leveraging the Gemini Flash 1.5 model, we have achieved text accuracy rates of approximately 90–95% for certain manuscripts.
+
+These manuscripts are further analyzed using the Classical Language Toolkit (CLTK) for lexical categorization. Additionally, Google Cloud Text-to-Speech enables live English audio renderings, translating the original manuscript’s language into spoken English.
+
+The idea for this project arose from recognizing the challenges faced by scholars and archaeologists, for whom transcription of ancient texts can take years. Textify aims to streamline this process, making the knowledge embedded in historical manuscripts more accessible and usable.
 
 ---
 
@@ -14,9 +22,9 @@ This project is divided into three main parts:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### 🔹 Frontend (React App)
+###  Frontend (React App)
 
 To start the frontend development server:
 
@@ -34,7 +42,7 @@ App runs on localhost:3000
 
 ```bash
 py -3.12 -m venv .venv
-source .venv/Scripts/activate # Activate env
+.venv/Scripts/Activate # Activate env
 
 ```
 
@@ -56,3 +64,4 @@ It is similiar to package.json in node app.
 pip freeze # See the version of the installed package in terminal
 pip freeze > requirement.txt # Creates a file called requirement.txt with installed packages
 ```
+
