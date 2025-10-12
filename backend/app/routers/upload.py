@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 from pydantic import BaseModel
 from app.preprocess import preprocess_image
-from app.ocr_ai_processor import extract_text_with_vision, correct_text_with_gemini
+from app.ocr_ai_processor import extract_text_with_vision, correct_text_with_ollama
 from deep_translator import GoogleTranslator
 from app.textProcessor import get_text_processor
 
@@ -85,7 +85,7 @@ async def upload_and_preprocess(
         raw_text = extract_text_with_vision(preprocessed_path)
         
         # Correct text with Gemini (clean up OCR errors)
-        corrected_text = correct_text_with_gemini(raw_text, language)
+        corrected_text = correct_text_with_ollama(raw_text, language)
         
         # Analyze corrected text with CLTK for lemmas/POS
         processor = get_text_processor()

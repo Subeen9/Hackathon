@@ -68,4 +68,15 @@ It is similiar to package.json in node app.
 pip freeze # See the version of the installed package in the terminal
 pip freeze > requirement.txt # Creates a file called requirement.txt with installed packages
 ```
+### Gemini is now replaced by ollama models for text cleanup
+**Requirements for Ollama**
+- Download Ollama
+[Download for Windows](https://ollama.com/download/windows)
+[Download for Mac](https://ollama.com/download/mac)
+
+- Run the following command to install the models
+```bash
+ollama pull llama3.1
+ollama pull qwen2.5
+```
 
