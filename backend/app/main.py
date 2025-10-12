@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from app.routers import upload
 from app.routers import tts
 
-app = FastAPI(title="Hackathon API 🚀")
+app = FastAPI(title="Hackathon API")
 
 # CORS middleware
 app.add_middleware(

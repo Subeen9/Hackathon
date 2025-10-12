@@ -3,6 +3,7 @@ import io
 from google.cloud import vision
 import google.generativeai as genai
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -10,22 +11,78 @@ load_dotenv()
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 vision_client = vision.ImageAnnotatorClient()
 
-# Gemini setup
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-genai.configure(api_key=GEMINI_API_KEY)
+# Ollama setup
+OLLAMA_API_URL = "http://localhost:11434/api/generate"
+OLLAMA_MODEL = "llama3.1" #This will default model but qwen will be used for non Latin languages
 
-# Find available models
-available_models = []
-for m in genai.list_models():
-    if 'generateContent' in m.supported_generation_methods:
-        available_models.append(m.name)
+def call_ollama(prompt: str, model: str = OLLAMA_MODEL) -> str:
+    """
+    Call Ollama API with a prompt and return the response
+    """
+    try:
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.3,  # Lower for more deterministic corrections
+                "top_p": 0.9,
+                "num_predict": 2000  
+            }
+        }
+        
+        response = requests.post(OLLAMA_API_URL, json=payload, timeout=120)
+        response.raise_for_status()
+        
+        result = response.json()
+        raw_response = result.get("response", "").strip()
+        
+        # Clean up common LLM preambles and postscripts
+        cleaned = clean_llm_response(raw_response)
+        return cleaned
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Ollama API error: {e}")
+        return ""
 
-if available_models:
-    model_name = available_models[0]
-    print(f"Using Gemini model: {model_name}")
-    gemini_model = genai.GenerativeModel(model_name)
-else:
-    raise Exception("No Gemini models available")
+def clean_llm_response(text: str) -> str:
+    """
+    Remove common LLM conversational wrappers and return just the content
+    """
+    # Common phrases to remove
+    unwanted_phrases = [
+        "Here is the corrected",
+        "Here's the corrected",
+        "The corrected text is:",
+        "CORRECTED TEXT:",
+        "Return ONLY corrected",
+        "Note:",
+        "I've kept the formatting",
+        "I have corrected",
+        "Below is the corrected",
+        "Here is your corrected"
+    ]
+    
+    lines = text.split('\n')
+    cleaned_lines = []
+    
+    for line in lines:
+        # Skip lines that contain unwanted phrases (case insensitive)
+        if any(phrase.lower() in line.lower() for phrase in unwanted_phrases):
+            continue
+        # Skip lines that are just explanations or meta-commentary
+        if line.strip().startswith("Note:") or line.strip().startswith("I've"):
+            continue
+        cleaned_lines.append(line)
+    
+    result = '\n'.join(cleaned_lines).strip()
+    
+    # Remove any leading/trailing markdown code blocks if present
+    if result.startswith("```") and result.endswith("```"):
+        lines = result.split('\n')
+        result = '\n'.join(lines[1:-1]).strip()
+    
+    return result
 
 def extract_text_with_vision(image_path: str) -> str:
     with io.open(image_path, 'rb') as image_file:
@@ -40,7 +97,7 @@ def extract_text_with_vision(image_path: str) -> str:
     texts = response.text_annotations
     return texts[0].description if texts else "No text found"
 
-def correct_latin_with_gemini(raw_text: str) -> str:
+def correct_latin_with_ollama(raw_text: str) -> str:
     prompt = f"""You are an expert in medieval Latin paleography and manuscript transcription.
 
 I have OCR output from a medieval Latin manuscript (Vulgate Bible) with errors. Correct it:
@@ -55,16 +112,12 @@ I have OCR output from a medieval Latin manuscript (Vulgate Bible) with errors. 
 RAW OCR:
 {raw_text}
 
-Return ONLY corrected Latin text:"""
+CRITICAL: Return ONLY the corrected Latin text. No explanations, no "here is", no notes, no commentary. Just the text itself."""
 
-    try:
-        response = gemini_model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"Gemini error: {e}")
-        return raw_text
+    corrected = call_ollama(prompt)
+    return corrected if corrected else raw_text
 
-def correct_old_english_with_gemini(raw_text: str) -> str:
+def correct_old_english_with_ollama(raw_text: str) -> str:
     prompt = f"""You are an expert in Old English (Anglo-Saxon) paleography and manuscript transcription.
 
 I have OCR output from an Old English manuscript with errors. Correct it:
@@ -81,16 +134,12 @@ I have OCR output from an Old English manuscript with errors. Correct it:
 RAW OCR:
 {raw_text}
 
-Return ONLY corrected Old English text:"""
+CRITICAL: Return ONLY the corrected Old English text. No explanations, no "here is", no notes, no commentary. Just the text itself."""
 
-    try:
-        response = gemini_model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"Gemini error: {e}")
-        return raw_text
+    corrected = call_ollama(prompt)
+    return corrected if corrected else raw_text
 
-def correct_sanskrit_with_gemini(raw_text: str) -> str:
+def correct_sanskrit_with_ollama(raw_text: str) -> str:
     prompt = f"""You are an expert in Sanskrit paleography and manuscript transcription, specializing in Devanagari script.
 
 I have OCR output from a Sanskrit manuscript with errors. Correct it:
@@ -108,16 +157,12 @@ I have OCR output from a Sanskrit manuscript with errors. Correct it:
 RAW OCR:
 {raw_text}
 
-Return ONLY corrected Sanskrit text in Devanagari script:"""
+CRITICAL: Return ONLY the corrected Sanskrit text in Devanagari script. No explanations, no "here is", no notes, no commentary. Just the text itself."""
 
-    try:
-        response = gemini_model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"Gemini error: {e}")
-        return raw_text
+    corrected = call_ollama(prompt, model="qwen2.5")  # Better for non-Latin scripts
+    return corrected if corrected else raw_text
 
-def correct_greek_with_gemini(raw_text: str) -> str:
+def correct_greek_with_ollama(raw_text: str) -> str:
     prompt = f"""You are an expert in Ancient Greek paleography and manuscript transcription.
 
 I have OCR output from an Ancient Greek manuscript with errors. Correct it:
@@ -136,27 +181,23 @@ I have OCR output from an Ancient Greek manuscript with errors. Correct it:
 RAW OCR:
 {raw_text}
 
-Return ONLY corrected Ancient Greek text:"""
+CRITICAL: Return ONLY the corrected Ancient Greek text. No explanations, no "here is", no notes, no commentary. Just the text itself."""
 
-    try:
-        response = gemini_model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"Gemini error: {e}")
-        return raw_text
+    corrected = call_ollama(prompt, model="qwen2.5")  # Better for non-Latin scripts
+    return corrected if corrected else raw_text
     
-def correct_text_with_gemini(raw_text: str, language: str) -> str:
+def correct_text_with_ollama(raw_text: str, language: str) -> str:
     """
     Router function that picks the right correction function based on language
     """
     if language == "latin":
-        return correct_latin_with_gemini(raw_text)
+        return correct_latin_with_ollama(raw_text)
     elif language == "old_english":
-        return correct_old_english_with_gemini(raw_text)
+        return correct_old_english_with_ollama(raw_text)
     elif language == "sanskrit":
-        return correct_sanskrit_with_gemini(raw_text)
+        return correct_sanskrit_with_ollama(raw_text)
     elif language == "greek":
-        return correct_greek_with_gemini(raw_text)
+        return correct_greek_with_ollama(raw_text)
     else:
         # Fallback to raw text if language not supported yet
         return raw_text
